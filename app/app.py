@@ -330,7 +330,7 @@ class UserActivities(Resource):
         if 'title' in data:
             try:
                 word_count = len(data['title'].split())
-                assert word_count <= 10, "Title should not exceed 10 words"
+                assert word_count <= 4, "Title should not exceed 4 words"
             except AssertionError as error:
                 errors['title'] = str(error)
         else:
@@ -367,7 +367,6 @@ class UserActivities(Resource):
                 start_date = datetime.fromisoformat(data['start_date']).replace(tzinfo=timezone.utc)
                 start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
                 assert start_date.date() >= start_of_today.date(), "Start date should be equal to today or in the future"
-                activity.start_date = start_date
             except (ValueError, AssertionError) as error:
                 errors['start_date'] = str(error)
         else:
@@ -376,10 +375,7 @@ class UserActivities(Resource):
         if 'end_date' in data:
             try:
                 end_date = datetime.fromisoformat(data['end_date']).replace(tzinfo=timezone.utc)
-                if activity.start_date.tzinfo is None:
-                    activity.start_date = activity.start_date.replace(tzinfo=timezone.utc)
-                assert end_date >= activity.start_date, "End date should be equal to or after the start date"
-                activity.end_date = end_date
+                assert end_date >= start_date, "End date should be equal to or after the start date"
             except (ValueError, AssertionError) as error:
                 errors['end_date'] = str(error)
         else:
@@ -445,7 +441,7 @@ class ActivityByID(Resource):
         if 'title' in data:
             try:
                 word_count = len(data['title'].split())
-                assert word_count <= 10, "Title should not exceed 10 words"
+                assert word_count <= 4, "Title should not exceed 4 words"
                 activity.title = data['title']
             except AssertionError as error:
                 errors['title'] = str(error)

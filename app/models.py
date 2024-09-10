@@ -93,7 +93,7 @@ class Activity(db.Model, SerializerMixin):
     @validates('title')
     def validate_title(self, key, title):
         word_count = len(title.split())
-        assert word_count <= 10, "Title should not exceed 10 words"
+        assert word_count <= 4, "Title should not exceed 4 words"
         return title
 
     @validates('description')
