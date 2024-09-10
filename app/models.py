@@ -43,6 +43,12 @@ class User(db.Model, SerializerMixin):
         assert re.match(r"[^@]+@[^@]+\.[^@]+", email), 'Invalid email format'
         return email
     
+    @validates('bio')
+    def validate_bio(self, key, bio):
+        word_count = len(bio.split())
+        assert word_count <= 50, "Bio should not exceed 50 words"
+        return bio
+    
     @validates('password')
     def validate_password(self, key, password):
         assert len(password) >= 6, "Password should be at least 6 characters long"
@@ -69,7 +75,10 @@ class Activity(db.Model, SerializerMixin):
     rating= db.Column(db.Integer(), nullable=True)
     location = db.Column(db.String(), nullable=False)
     category = db.Column(db.String(), nullable=False, default='General')
+    image = db.Column(db.String(), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc))
+    start_date = db.Column(db.DateTime, nullable=False)
+    end_date = db.Column(db.DateTime, nullable=False)
 
     # foreign keys
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -83,19 +92,41 @@ class Activity(db.Model, SerializerMixin):
     # validations
     @validates('title')
     def validate_title(self, key, title):
-        assert len(title) > 0, "Title should not be empty"
+        word_count = len(title.split())
+        assert word_count <= 10, "Title should not exceed 10 words"
         return title
 
     @validates('description')
-    def validate_body(self, key, body):
-        assert len(body) > 0, "Description must be included"
-        return body
+    def validate_body(self, key, description):
+        word_count = len(description.split())
+        assert word_count <= 50, "description should not exceed 20 words"
+        return description
+    
     @validates('category')
     def validate_category(self, key, category):
-        assert len(category) > 0, "Category should not be empty"
+        allowed_categories = ['Outdoors', 'Indoors', 'General']
+        assert category in allowed_categories, f"Category should be one of {allowed_categories}"
         return category
     
     @validates('location')
     def validate_title(self, key, location):
         assert len(location) > 0, "Location should be provided"
         return location
+    
+    @validates('start_date')
+    def validate_start_date(self, key, start_date):
+        start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        assert start_date >= start_of_today, "Start date should be today or in the future"
+        return start_date
+    
+    @validates('end_date')
+    def validate_end_date(self, key, end_date):
+        start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        assert end_date >= start_of_today, "End date should be today or in the future"
+        assert end_date >= self.start_date, "End date should be equal to or after the start date"
+        return end_date
+    
+    # Uploading picture
+    def upload_image(self, image):
+        upload_result = cloudinary.uploader.upload(image)
+        self.image = upload_result['url']

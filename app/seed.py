@@ -13,75 +13,56 @@ if __name__ == '__main__':
 
         # Create sample users
         user1 = User(
-            first_name='John',
-            last_name='Doe',
-            email='john.doe@example.com',
-            password=bcrypt.generate_password_hash("Password123!").decode('utf-8'),
-            bio='A sample bio for John Doe.',
-            image='http://example.com/image1.jpg'
-        )
-
-        user2 = User(
-            first_name='Jane',
-            last_name='Smith',
-            email='jane.smith@example.com',
-            password=bcrypt.generate_password_hash("Password123!").decode('utf-8'),
-            bio='A sample bio for Jane Smith.',
-            image='http://example.com/image2.jpg'
+            first_name='Reen',
+            last_name='Muli',
+            email='reen@gmail.com',
+            password=bcrypt.generate_password_hash("Reen123!").decode('utf-8'),
+            bio='Nature enthusiast with a passion for exploring the outdoors, wildlife, and sustainable living. Always chasing sunsets and new adventures in the wild.',
+            image='http://res.cloudinary.com/dppzo29it/image/upload/v1725871003/bjpi5vxlqonrj5rsnja3.jpg'
         )
 
         # Create sample activities with different created_at dates
         activity1 = Activity(
-            title='Hiking',
-            description='A fun hiking activity.',
-            reviews='Great experience!',
-            rating=5,
-            location='Mountain Trail',
-            category='Outdoor',
-            created_at=datetime.now(timezone.utc) - timedelta(days=10),
+            title='Camping Trip',
+            description='A five day camping expedition along the mara. Kosa uchekwe!!!!!',
+            image='http://res.cloudinary.com/dppzo29it/image/upload/v1725871204/krlssuniibyxxnlqiyih.jpg',
+            location='The Mara',
+            category='Outdoors',
+            created_at=datetime.now(timezone.utc),
+            start_date=datetime.now(timezone.utc) + timedelta(days=2),
+            end_date=datetime.now(timezone.utc) + timedelta(days=7),
             user=user1
         )
 
         activity2 = Activity(
-            title='Cooking Class',
-            description='Learn to cook delicious meals.',
-            reviews='Very informative!',
-            rating=4,
-            location='Cooking Studio',
-            category='Indoor',
+            title='Hiking',
+            description='A one day hiking experience of the Ngong hills. Come one come all.',
+            image='http://res.cloudinary.com/dppzo29it/image/upload/v1725872047/hfvguqgcxyra8zb8lby9.jpg',
+            location='Ngong Hills',
+            category='Outdoors',
             created_at=datetime.now(timezone.utc) - timedelta(days=2),
+            start_date=datetime.now(timezone.utc) + timedelta(days=1),
+            end_date=datetime.now(timezone.utc) + timedelta(days=1),
             user=user1
         )
 
         activity3 = Activity(
-            title='Yoga Session',
-            description='A relaxing yoga session.',
-            reviews='Very calming!',
-            rating=5,
-            location='Yoga Center',
-            category='Wellness',
-            created_at=datetime.now(timezone.utc) - timedelta(days=1),
-            user=user1
-        )
-
-        activity4 = Activity(
-            title='Painting Workshop',
-            description='Learn to paint beautiful landscapes.',
-            reviews='Very creative!',
-            rating=4,
-            location='Art Studio',
-            category='Art',
+            title='Weekend Getaway to Diani',
+            description='Come enjoy a weekend full of fun along the sandy beaches of Diani',
+            location='Diani, Kenya',
+            image='http://res.cloudinary.com/dppzo29it/image/upload/v1725872253/ccbbwmrmg44gzfdia4ne.jpg',
+            category='Outdoors',
             created_at=datetime.now(timezone.utc),
+            start_date=datetime.now(timezone.utc) + timedelta(days=7),
+            end_date=datetime.now(timezone.utc) + timedelta(days=9),
             user=user1
         )
 
         # Add users and activities to the session
         db.session.add(user1)
-        db.session.add(user2)
         db.session.add(activity1)
         db.session.add(activity2)
         db.session.add(activity3)
-        db.session.add(activity4)
 
         # Commit the session to save the data
         db.session.commit()
