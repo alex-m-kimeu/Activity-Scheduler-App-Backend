@@ -1,5 +1,5 @@
 {
-    "builds":[
+    "builds": [
         {
             "src": "app/app.py",
             "use": "@vercel/python"
@@ -10,5 +10,6 @@
             "src": "/(.*)",
             "dest": "app/app.py"
         }
-    ]
+    ],
+    "postinstall": "pip install -r requirements.txt"
 }
