@@ -51,11 +51,21 @@ class User(db.Model, SerializerMixin):
     
     @validates('password')
     def validate_password(self, key, password):
-        assert len(password) >= 6, "Password should be at least 6 characters long"
-        assert re.search(r"[A-Z]", password), "Password should contain at least one uppercase letter"
-        assert re.search(r"[a-z]", password), "Password should contain at least one lowercase letter"
-        assert re.search(r"[0-9]", password), "Password should contain at least one digit"
-        assert re.search(r"[!@#$%^&*(),.?\":{}|<>]", password), "Password should contain at least one special character"
+        errors = []
+        if len(password) < 6:
+            errors.append("Password should be at least 6 characters long")
+        if not re.search(r"[A-Z]", password):
+            errors.append("Password should contain at least one uppercase letter")
+        if not re.search(r"[a-z]", password):
+            errors.append("Password should contain at least one lowercase letter")
+        if not re.search(r"[0-9]", password):
+            errors.append("Password should contain at least one digit")
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+            errors.append("Password should contain at least one special character")
+        
+        if errors:
+            raise AssertionError(errors)
+        
         return password
     
     # Uploading profile picture
