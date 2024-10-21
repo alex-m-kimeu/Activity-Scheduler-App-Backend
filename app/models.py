@@ -21,10 +21,11 @@ class User(db.Model, SerializerMixin):
     image = db.Column(db.String(), nullable=True)
 
     # relationships
-    activities = relationship('Activity', back_populates='user' ,cascade='all, delete-orphan')
+    activities = relationship('Activity', back_populates='user', cascade='all, delete-orphan')
+    user_activities = relationship('UserActivity', back_populates='user', cascade='all, delete-orphan')
 
     # serialization rules
-    serialize_rules = ('-activities',)
+    serialize_rules = ('-activities', '-user_activities')
 
     # validations
     @validates('first_name')
@@ -81,8 +82,6 @@ class Activity(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(), nullable=False)
     description = db.Column(db.Text(), nullable=False)
-    reviews = db.Column(db.Text(), nullable=True)
-    rating= db.Column(db.Integer(), nullable=True)
     location = db.Column(db.String(), nullable=False)
     category = db.Column(db.String(), nullable=False, default='General')
     image = db.Column(db.String(), nullable=True)
@@ -95,9 +94,10 @@ class Activity(db.Model, SerializerMixin):
 
     # relationships
     user = relationship('User', back_populates='activities')
+    user_activities = relationship('UserActivity', back_populates='activity', cascade='all, delete-orphan')
 
     # serialization rules
-    serialize_rules = ('-user',)
+    serialize_rules = ('-user', '-user_activities')
 
     # validations
     @validates('title')
@@ -109,7 +109,7 @@ class Activity(db.Model, SerializerMixin):
     @validates('description')
     def validate_body(self, key, description):
         word_count = len(description.split())
-        assert word_count <= 50, "description should not exceed 20 words"
+        assert word_count <= 50, "Description should not exceed 50 words"
         return description
     
     @validates('category')
@@ -123,20 +123,30 @@ class Activity(db.Model, SerializerMixin):
         assert len(location) > 0, "Location should be provided"
         return location
     
-    @validates('start_date')
-    def validate_start_date(self, key, start_date):
-        start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-        assert start_date >= start_of_today, "Start date should be today or in the future"
-        return start_date
-    
-    @validates('end_date')
-    def validate_end_date(self, key, end_date):
-        start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-        assert end_date >= start_of_today, "End date should be today or in the future"
-        assert end_date >= self.start_date, "End date should be equal to or after the start date"
-        return end_date
-    
     # Uploading picture
     def upload_image(self, image):
         upload_result = cloudinary.uploader.upload(image)
         self.image = upload_result['url']
+
+class UserActivity(db.Model, SerializerMixin):
+    __tablename__ = 'user_activities'
+
+    # columns
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    activity_id = db.Column(db.Integer, db.ForeignKey('activities.id'), nullable=False)
+    status = db.Column(db.String(), nullable=False, default='Pending')
+
+    # serialization rules
+    serialize_rules = ('-user', '-activity')
+    
+    # relationships
+    user = relationship('User', back_populates='user_activities')
+    activity = relationship('Activity', back_populates='user_activities')
+
+    # validations
+    @validates('status')
+    def validate_status(self, key, status):
+        allowed_statuses = ['Pending', 'Completed', 'Cancelled']
+        assert status in allowed_statuses, f"Status should be one of {allowed_statuses}"
+        return status

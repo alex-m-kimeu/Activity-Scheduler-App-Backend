@@ -11,9 +11,8 @@ from dotenv import load_dotenv
 import os
 import cloudinary
 import cloudinary.uploader
-import re
 
-from models import db, User, Activity
+from models import db, User, Activity, UserActivity
 
 app = Flask(__name__)
 load_dotenv()
@@ -277,13 +276,27 @@ class UserActivities(Resource):
             return {"error": "Unauthorized"}, 401
 
         try:
+            start_date = datetime.fromisoformat(data['start_date']).replace(tzinfo=timezone.utc)
+            end_date = datetime.fromisoformat(data['end_date']).replace(tzinfo=timezone.utc)
+            start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+
+            # Validate start date
+            if start_date < start_of_today:
+                return {"error": "Start date should be today or in the future"}, 400
+
+            # Validate end date
+            if end_date < start_of_today:
+                return {"error": "End date should be today or in the future"}, 400
+            if end_date < start_date:
+                return {"error": "End date should be equal to or after the start date"}, 400
+
             activity = Activity(
                 title=data['title'],
                 description=data['description'],
                 location=data['location'],
                 category=data['category'],
-                start_date=datetime.fromisoformat(data['start_date']).replace(tzinfo=timezone.utc),
-                end_date=datetime.fromisoformat(data['end_date']).replace(tzinfo=timezone.utc),
+                start_date=start_date,
+                end_date=end_date,
                 user_id=user_id
             )
 
@@ -319,22 +332,30 @@ class ActivityByID(Resource):
         if not data and 'image' not in request.files:
             return {"error": "Missing data in request"}, 400
 
+        if 'start_date' in data:
+            start_date = datetime.fromisoformat(data['start_date']).replace(tzinfo=timezone.utc)
+            start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+            if start_date < start_of_today:
+                return {"error": "Start date should be today or in the future"}, 400
+            activity.start_date = start_date
+
+        if 'end_date' in data:
+            end_date = datetime.fromisoformat(data['end_date']).replace(tzinfo=timezone.utc)
+            start_of_today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+            if end_date < start_of_today:
+                return {"error": "End date should be today or in the future"}, 400
+            if end_date < activity.start_date:
+                return {"error": "End date should be equal to or after the start date"}, 400
+            activity.end_date = end_date
+
         if 'title' in data:
             activity.title = data['title']
         if 'description' in data:
             activity.description = data['description']
-        if 'reviews' in data:
-            activity.reviews = data['reviews']
-        if 'rating' in data:
-            activity.rating = int(data['rating'])
         if 'location' in data:
             activity.location = data['location']
         if 'category' in data:
             activity.category = data['category']
-        if 'start_date' in data:
-            activity.start_date = datetime.fromisoformat(data['start_date']).replace(tzinfo=timezone.utc)
-        if 'end_date' in data:
-            activity.end_date = datetime.fromisoformat(data['end_date']).replace(tzinfo=timezone.utc)
         if 'image' in request.files:
             activity.upload_image(request.files['image'])
 
@@ -373,6 +394,76 @@ class ActivitiesByDate(Resource):
         return make_response({"activities": activities}, 200)
 
 api.add_resource(ActivitiesByDate, '/activities/date')
+
+# Bookmark Activity
+class BookmarkActivity(Resource):
+    @jwt_required()
+    def get(self):
+        user_id = get_jwt_identity().get('id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+        
+        user_activities = UserActivity.query.filter_by(user_id=user_id).all()
+        activities = [user_activity.activity.to_dict() for user_activity in user_activities]
+        return make_response(activities, 200)
+    
+    @jwt_required()
+    def post(self):
+        user_id = get_jwt_identity().get('id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+
+        data = request.get_json()
+        if not data or 'activity_id' not in data:
+            return {"error": "Activity ID is required"}, 400
+
+        activity_id = data['activity_id']
+        activity = Activity.query.filter_by(id=activity_id).first()
+        if not activity:
+            return {"error": "Activity not found"}, 404
+
+        current_time = datetime.now(timezone.utc)
+
+        if activity.end_date.tzinfo is None:
+            activity.end_date = activity.end_date.replace(tzinfo=timezone.utc)
+
+        if current_time > activity.end_date:
+            return {"error": "Activity has already ended"}, 400
+
+        status = 'Pending'
+
+        user_activity = UserActivity(
+            user_id=user_id,
+            activity_id=activity_id,
+            status=status
+        )
+
+        db.session.add(user_activity)
+        db.session.commit()
+        return make_response(user_activity.to_dict(), 201)
+
+    @jwt_required()
+    def patch(self):
+        user_id = get_jwt_identity().get('id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+
+        data = request.get_json()
+        if not data or 'activity_id' not in data or 'status' not in data:
+            return {"error": "Activity ID and status are required"}, 400
+
+        activity_id = data['activity_id']
+        status = data['status']
+
+        user_activity = UserActivity.query.filter_by(user_id=user_id, activity_id=activity_id).first()
+        if not user_activity:
+            return {"error": "Bookmark not found"}, 404
+
+        user_activity.status = status
+        db.session.commit()
+        return make_response(user_activity.to_dict(), 200)
+
+api.add_resource(BookmarkActivity, '/bookmark-activity')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5500)

@@ -40,9 +40,9 @@ if __name__ == '__main__':
             image='http://res.cloudinary.com/dppzo29it/image/upload/v1725872047/hfvguqgcxyra8zb8lby9.jpg',
             location='Ngong Hills',
             category='Outdoors',
-            created_at=datetime.now(timezone.utc) - timedelta(days=2),
-            start_date=datetime.now(timezone.utc) + timedelta(days=1),
-            end_date=datetime.now(timezone.utc) + timedelta(days=1),
+            created_at=datetime.now(timezone.utc) - timedelta(days=7),
+            start_date=datetime.now(timezone.utc) - timedelta(days=5),
+            end_date=datetime.now(timezone.utc) - timedelta(days=2),
             user=user1
         )
 
