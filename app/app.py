@@ -408,16 +408,15 @@ class BookmarkActivity(Resource):
         return make_response(activities, 200)
     
     @jwt_required()
-    def post(self):
+    def post(self, activity_id):
         user_id = get_jwt_identity().get('id')
         if not user_id:
             return {"error": "Unauthorized"}, 401
 
-        data = request.get_json()
-        if not data or 'activity_id' not in data:
-            return {"error": "Activity ID is required"}, 400
+        existing_bookmark = UserActivity.query.filter_by(user_id=user_id, activity_id=activity_id).first()
+        if existing_bookmark:
+            return {"error": "Activity has already been bookmarked"}, 400
 
-        activity_id = data['activity_id']
         activity = Activity.query.filter_by(id=activity_id).first()
         if not activity:
             return {"error": "Activity not found"}, 404
@@ -443,16 +442,15 @@ class BookmarkActivity(Resource):
         return make_response(user_activity.to_dict(), 201)
 
     @jwt_required()
-    def patch(self):
+    def patch(self, activity_id):
         user_id = get_jwt_identity().get('id')
         if not user_id:
             return {"error": "Unauthorized"}, 401
 
         data = request.get_json()
-        if not data or 'activity_id' not in data or 'status' not in data:
-            return {"error": "Activity ID and status are required"}, 400
+        if not data or 'status' not in data:
+            return {"error": "Status is required"}, 400
 
-        activity_id = data['activity_id']
         status = data['status']
 
         user_activity = UserActivity.query.filter_by(user_id=user_id, activity_id=activity_id).first()
@@ -463,7 +461,7 @@ class BookmarkActivity(Resource):
         db.session.commit()
         return make_response(user_activity.to_dict(), 200)
 
-api.add_resource(BookmarkActivity, '/bookmark-activity')
+api.add_resource(BookmarkActivity, '/bookmark-activity', '/bookmark-activity/<int:activity_id>')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5500)
