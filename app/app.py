@@ -402,8 +402,13 @@ class BookmarkActivity(Resource):
         user_id = get_jwt_identity().get('id')
         if not user_id:
             return {"error": "Unauthorized"}, 401
+
+        status = request.args.get('status', '').lower()
+        if status == 'all':
+            user_activities = UserActivity.query.filter_by(user_id=user_id).all()
+        else:
+            user_activities = UserActivity.query.filter_by(user_id=user_id, status=status).all()
         
-        user_activities = UserActivity.query.filter_by(user_id=user_id).all()
         activities = [user_activity.activity.to_dict() for user_activity in user_activities]
         return make_response(activities, 200)
     
@@ -429,7 +434,7 @@ class BookmarkActivity(Resource):
         if current_time > activity.end_date:
             return {"error": "Activity has already ended"}, 400
 
-        status = 'Pending'
+        status = 'pending'
 
         user_activity = UserActivity(
             user_id=user_id,
@@ -451,7 +456,7 @@ class BookmarkActivity(Resource):
         if not data or 'status' not in data:
             return {"error": "Status is required"}, 400
 
-        status = data['status']
+        status = data.get('status', '').lower()
 
         user_activity = UserActivity.query.filter_by(user_id=user_id, activity_id=activity_id).first()
         if not user_activity:

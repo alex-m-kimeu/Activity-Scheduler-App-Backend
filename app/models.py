@@ -97,7 +97,7 @@ class Activity(db.Model, SerializerMixin):
     user_activities = relationship('UserActivity', back_populates='activity', cascade='all, delete-orphan')
 
     # serialization rules
-    serialize_rules = ('-user', '-user_activities')
+    serialize_rules = ('-user', '-user_activities.user')
 
     # validations
     @validates('title')
@@ -147,6 +147,6 @@ class UserActivity(db.Model, SerializerMixin):
     # validations
     @validates('status')
     def validate_status(self, key, status):
-        allowed_statuses = ['Pending', 'Completed', 'Cancelled']
+        allowed_statuses = ['pending', 'completed', 'cancelled', 'all']
         assert status in allowed_statuses, f"Status should be one of {allowed_statuses}"
         return status
