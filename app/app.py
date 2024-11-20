@@ -435,11 +435,13 @@ class BookmarkActivity(Resource):
             return {"error": "Activity has already ended"}, 400
 
         status = 'pending'
+        priority = 'normal'
 
         user_activity = UserActivity(
             user_id=user_id,
             activity_id=activity_id,
-            status=status
+            status=status,
+            priority=priority            
         )
 
         db.session.add(user_activity)
@@ -451,18 +453,23 @@ class BookmarkActivity(Resource):
         user_id = get_jwt_identity().get('id')
         if not user_id:
             return {"error": "Unauthorized"}, 401
-
+    
         data = request.get_json()
-        if not data or 'status' not in data:
-            return {"error": "Status is required"}, 400
-
-        status = data.get('status', '').lower()
-
+        if not data:
+            return {"error": "No data provided"}, 400
+    
         user_activity = UserActivity.query.filter_by(user_id=user_id, activity_id=activity_id).first()
         if not user_activity:
             return {"error": "Bookmark not found"}, 404
-
-        user_activity.status = status
+    
+        if 'status' in data:
+            status = data.get('status', '').lower()
+            user_activity.status = status
+    
+        if 'priority' in data:
+            priority = data.get('priority', '').lower()
+            user_activity.priority = priority
+    
         db.session.commit()
         return make_response(user_activity.to_dict(), 200)
 

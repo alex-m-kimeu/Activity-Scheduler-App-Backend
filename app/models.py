@@ -136,6 +136,7 @@ class UserActivity(db.Model, SerializerMixin):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     activity_id = db.Column(db.Integer, db.ForeignKey('activities.id'), nullable=False)
     status = db.Column(db.String(), nullable=False, default='Pending')
+    priority = db.Column(db.String(), nullable=False, default='normal')
 
     # serialization rules
     serialize_rules = ('-user', '-activity')
@@ -150,3 +151,9 @@ class UserActivity(db.Model, SerializerMixin):
         allowed_statuses = ['pending', 'completed', 'cancelled', 'all']
         assert status in allowed_statuses, f"Status should be one of {allowed_statuses}"
         return status
+    
+    @validates('priority')
+    def validate_priority(self, key, priority):
+        allowed_priorities = ['low', 'normal', 'high']
+        assert priority in allowed_priorities, f"Priority should be one of {allowed_priorities}"
+        return priority
