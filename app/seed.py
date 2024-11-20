@@ -18,14 +18,14 @@ if __name__ == '__main__':
             email='reen@gmail.com',
             password=bcrypt.generate_password_hash("Reen123!").decode('utf-8'),
             bio='Nature enthusiast with a passion for exploring the outdoors, wildlife, and sustainable living. Always chasing sunsets and new adventures in the wild.',
-            image='http://res.cloudinary.com/dppzo29it/image/upload/v1725871003/bjpi5vxlqonrj5rsnja3.jpg'
+            image='https://res.cloudinary.com/dppzo29it/image/upload/v1725871003/bjpi5vxlqonrj5rsnja3.jpg'
         )
 
         # Create sample activities with different created_at dates
         activity1 = Activity(
             title='Camping Trip',
             description='A five day camping expedition along the mara. Kosa uchekwe!!!!!',
-            image='http://res.cloudinary.com/dppzo29it/image/upload/v1725871204/krlssuniibyxxnlqiyih.jpg',
+            image='https://res.cloudinary.com/dppzo29it/image/upload/v1725871204/krlssuniibyxxnlqiyih.jpg',
             location='The Mara',
             category='Outdoors',
             created_at=datetime.now(timezone.utc),
@@ -37,7 +37,7 @@ if __name__ == '__main__':
         activity2 = Activity(
             title='Hiking',
             description='A one day hiking experience of the Ngong hills. Come one come all.',
-            image='http://res.cloudinary.com/dppzo29it/image/upload/v1725872047/hfvguqgcxyra8zb8lby9.jpg',
+            image='https://res.cloudinary.com/dppzo29it/image/upload/v1725872047/hfvguqgcxyra8zb8lby9.jpg',
             location='Ngong Hills',
             category='Outdoors',
             created_at=datetime.now(timezone.utc) - timedelta(days=7),
@@ -50,7 +50,7 @@ if __name__ == '__main__':
             title='Weekend Getaway to Diani',
             description='Come enjoy a weekend full of fun along the sandy beaches of Diani',
             location='Diani, Kenya',
-            image='http://res.cloudinary.com/dppzo29it/image/upload/v1725872253/ccbbwmrmg44gzfdia4ne.jpg',
+            image='https://res.cloudinary.com/dppzo29it/image/upload/v1725872253/ccbbwmrmg44gzfdia4ne.jpg',
             category='Outdoors',
             created_at=datetime.now(timezone.utc),
             start_date=datetime.now(timezone.utc) + timedelta(days=7),
