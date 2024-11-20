@@ -72,7 +72,7 @@ class User(db.Model, SerializerMixin):
     # Uploading profile picture
     def upload_image(self, image):
         upload_result = cloudinary.uploader.upload(image, secure=True)
-        self.image = upload_result['url']
+        self.image = upload_result['secure_url']
 
 # Activity Model
 class Activity(db.Model, SerializerMixin):
@@ -126,7 +126,7 @@ class Activity(db.Model, SerializerMixin):
     # Uploading picture
     def upload_image(self, image):
         upload_result = cloudinary.uploader.upload(image, secure=True)
-        self.image = upload_result['url']
+        self.image = upload_result['secure_url']
 
 class UserActivity(db.Model, SerializerMixin):
     __tablename__ = 'user_activities'
